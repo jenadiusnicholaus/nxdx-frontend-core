@@ -8,7 +8,7 @@
           <div class="panel-title">
             <h2><i class="glyphicon glyphicon-certificate"></i>&nbsp;&nbsp;Certificates</h2>
             <p class="text-muted">
-              Manage the OpenHIM keystore. A new OpenHIM server certificate can be added or generated and trusted client certificates can also be added or edited. Only self signed client certificates that should be trusted need to be added to the trust store. The OpenHIM already trusts all certificates signed by the common CAs, although, certificates must be linked to a client on the clients page before they can be used to send in requests.
+              Manage the NexaConn NDX keystore. A new NexaConn NDX server certificate can be added or generated and trusted client certificates can also be added or edited. Only self-signed client certificates that should be trusted need to be added to the trust store. The NexaConn NDX already trusts all certificates signed by the common CAs, although, certificates must be linked to a client on the clients page before they can be used to send in requests.
             </p>
           </div>
           <button class="btn btn-primary pull-right" ng-click="addCert('server')" ng-if="currentServerCert && currentServerCert.watchFSForCert == false" ng-show="!alerts.server"><i class="glyphicon glyphicon-plus"></i> Create Server Certificate</button>
@@ -27,7 +27,7 @@
         <div uib-alert ng-if="serverRestartRequired" class="alert ng-isolate-scope alert-danger" style="font-weight: bold; text-align: center; font-size: 16px;">
           <div style="margin-bottom: 10px;">
             When adding/updating a certificate, a server restart is required for it to be applied.<br />
-            Please ensure that no critical transactions are running through the OpenHIM while restarting as these may be lost.<br><br>
+            Please ensure that no critical transactions are running through the NexaConn NDX while restarting as these may be lost.<br><br>
           </div>
           <button class="btn btn-danger btn-lg" ng-click="restartServer()">Restart Server Now!</button>
           <button class="btn btn-danger btn-lg" ng-click="restartServerLater()">I'll manually restart later</button>

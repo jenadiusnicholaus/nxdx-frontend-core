@@ -1,163 +1,214 @@
-import * as defaultConfig from '../config/default.json'
+import * as defaultConfig from "../config/default.json";
 
-const app = angular.module('openhimConsoleApp');
+const app = angular.module("openhimConsoleApp");
 
 // function to boostrap the app manually - used to first get config data before angular initializes
 (function () {
-  function fetchData () {
-    const initInjector = angular.injector(['ng'])
-    const $http = initInjector.get('$http')
+  function fetchData() {
+    const initInjector = angular.injector(["ng"]);
+    const $http = initInjector.get("$http");
 
-    return $http.get('config/default.json').then(function (response) {
-      app.constant('config', response.data)
-    }, function () {
-      // Handle error case
-      app.constant('config', defaultConfig)
-    })
+    return $http.get("config/default.json").then(
+      function (response) {
+        app.constant("config", response.data);
+      },
+      function () {
+        // Handle error case
+        app.constant("config", defaultConfig);
+      },
+    );
   }
 
-  function bootstrapApplication () {
+  function bootstrapApplication() {
     angular.element(document).ready(function () {
-      angular.bootstrap(document, ['openhimConsoleApp'])
-    })
+      angular.bootstrap(document, ["openhimConsoleApp"]);
+    });
   }
 
   // request config data and bootstrap on success
-  fetchData().then(bootstrapApplication)
-}())
+  fetchData().then(bootstrapApplication);
+})();
 
-app.config(['$compileProvider', function ($compileProvider) {
-  $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|ftp|file|blob):/)
-}])
+app.config([
+  "$compileProvider",
+  function ($compileProvider) {
+    $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|ftp|file|blob):/);
+  },
+]);
 
 app.config(function ($routeProvider) {
   $routeProvider
-    .when('/', {
-      template: require('../views/dashboard.html'),
-      controller: 'DashboardCtrl'
+    .when("/", {
+      template: require("../views/dashboard.html"),
+      controller: "DashboardCtrl",
     })
-    .when('/channels', {
-      template: require('../views/channels.html'),
-      controller: 'ChannelsCtrl'
+    .when("/home", {
+      template: require("../views/home.html"),
+      controller: "HomeCtrl",
     })
-    .when('/channels/:channelId', {
-      template: require('../views/channelMonitoring.html'),
-      controller: 'ChannelMonitoringCtrl'
+    .when("/channels", {
+      template: require("../views/channels.html"),
+      controller: "ChannelsCtrl",
     })
-    .when('/clients', {
-      template: require('../views/clients.html'),
-      controller: 'ClientsCtrl'
+    .when("/channels/:channelId", {
+      template: require("../views/channelMonitoring.html"),
+      controller: "ChannelMonitoringCtrl",
     })
-    .when('/monitoring', {
-      template: require('../views/monitoring.html'),
-      controller: 'MonitoringCtrl'
+    .when("/clients", {
+      template: require("../views/clients.html"),
+      controller: "ClientsCtrl",
     })
-    .when('/users', {
-      template: require('../views/users.html'),
-      controller: 'UsersCtrl'
+    .when("/monitoring", {
+      template: require("../views/monitoring.html"),
+      controller: "MonitoringCtrl",
     })
-    .when('/transactions', {
-      template: require('../views/transactions.html'),
-      controller: 'TransactionsCtrl'
+    .when("/users", {
+      template: require("../views/users.html"),
+      controller: "UsersCtrl",
     })
-    .when('/transactions/:transactionId', {
-      template: require('../views/transactionDetails.html'),
-      controller: 'TransactionDetailsCtrl'
+    .when("/transactions", {
+      template: require("../views/transactions.html"),
+      controller: "TransactionsCtrl",
     })
-    .when('/tasks', {
-      template: require('../views/tasks.html'),
-      controller: 'TasksCtrl'
+    .when("/transactions/:transactionId", {
+      template: require("../views/transactionDetails.html"),
+      controller: "TransactionDetailsCtrl",
     })
-    .when('/tasks/:taskId', {
-      template: require('../views/taskDetails.html'),
-      controller: 'TaskDetailsCtrl'
+    .when("/tasks", {
+      template: require("../views/tasks.html"),
+      controller: "TasksCtrl",
     })
-    .when('/groups', {
-      template: require('../views/contactGroups.html'),
-      controller: 'ContactGroupsCtrl'
+    .when("/tasks/:taskId", {
+      template: require("../views/taskDetails.html"),
+      controller: "TaskDetailsCtrl",
     })
-    .when('/login', {
-      template: require('../views/login.html'),
-      controller: 'LoginCtrl'
+    .when("/groups", {
+      template: require("../views/contactGroups.html"),
+      controller: "ContactGroupsCtrl",
     })
-    .when('/profile', {
-      template: require('../views/profile.html'),
-      controller: 'ProfileCtrl'
+    .when("/login", {
+      template: require("../views/login.html"),
+      controller: "LoginCtrl",
     })
-    .when('/mediators', {
-      template: require('../views/mediators.html'),
-      controller: 'MediatorsCtrl'
+    .when("/profile", {
+      template: require("../views/profile.html"),
+      controller: "ProfileCtrl",
     })
-    .when('/mediators/:urn', {
-      template: require('../views/mediatorDetails.html'),
-      controller: 'MediatorDetailsCtrl'
+    .when("/mediators", {
+      template: require("../views/mediators.html"),
+      controller: "MediatorsCtrl",
     })
-    .when('/logout', {
-      template: require('../views/login.html'),
-      controller: 'LoginCtrl'
+    .when("/mediators/:urn", {
+      template: require("../views/mediatorDetails.html"),
+      controller: "MediatorDetailsCtrl",
     })
-    .when('/visualizer', {
-      template: require('../views/visualizer.html'),
-      controller: 'VisualizerCtrl'
+    .when("/logout", {
+      template: require("../views/login.html"),
+      controller: "LoginCtrl",
     })
-    .when('/forgot-password', {
-      template: require('../views/forgotPassword.html'),
-      controller: 'ForgotPasswordCtrl'
+    .when("/visualizer", {
+      template: require("../views/visualizer.html"),
+      controller: "VisualizerCtrl",
     })
-    .when('/set-password/:token', {
-      template: require('../views/setPassword.html'),
-      controller: 'SetPasswordCtrl'
+    .when("/forgot-password", {
+      template: require("../views/forgotPassword.html"),
+      controller: "ForgotPasswordCtrl",
     })
-    .when('/certificates', {
-      template: require('../views/certificates.html'),
-      controller: 'CertificatesCtrl'
+    .when("/set-password/:token", {
+      template: require("../views/setPassword.html"),
+      controller: "SetPasswordCtrl",
     })
-    .when('/export-import', {
-      template: require('../views/exportImport.html'),
-      controller: 'ExportImportCtrl'
+    .when("/certificates", {
+      template: require("../views/certificates.html"),
+      controller: "CertificatesCtrl",
     })
-    .when('/audits', {
-      template: require('../views/audits.html'),
-      controller: 'AuditsCtrl'
+    .when("/export-import", {
+      template: require("../views/exportImport.html"),
+      controller: "ExportImportCtrl",
     })
-    .when('/audits/:auditId', {
-      template: require('../views/auditDetails.html'),
-      controller: 'AuditDetailsCtrl'
+    .when("/audits", {
+      template: require("../views/audits.html"),
+      controller: "AuditsCtrl",
     })
-    .when('/logs', {
-      template: require('../views/logs.html'),
-      controller: 'LogsCtrl'
+    .when("/audits/:auditId", {
+      template: require("../views/auditDetails.html"),
+      controller: "AuditDetailsCtrl",
     })
-    .when('/about', {
-      template: require('../views/about.html'),
-      controller: 'AboutCtrl'
+    .when("/logs", {
+      template: require("../views/logs.html"),
+      controller: "LogsCtrl",
+    })
+    .when("/about", {
+      template: require("../views/about.html"),
+      controller: "AboutCtrl",
     })
     .otherwise({
-      redirectTo: '/'
-    })
-})
+      redirectTo: "/",
+    });
+});
 
-app.run(function ($rootScope, $http, $location, $window, $anchorScroll, Alerting, config) {
-  // set uiSettings function to update the 'showTooltips' variable
-  $rootScope.uiSettings = {}
-  $rootScope.uiSettings.showTooltips = true
+app.run(
+  function (
+    $rootScope,
+    $http,
+    $location,
+    $window,
+    $anchorScroll,
+    Alerting,
+    config,
+  ) {
+    // set uiSettings function to update the 'showTooltips' variable
+    $rootScope.uiSettings = {};
+    $rootScope.uiSettings.showTooltips = true;
 
-  $rootScope.appTitle = config.title
-  $rootScope.appFooterTitle = config.footerTitle
-  $rootScope.appFooterPoweredBy = config.footerPoweredBy
-  $rootScope.footerConsoleVersion = null
-  $rootScope.footerCoreVersion = null
-  $rootScope.loginBanner = config.loginBanner
+    $rootScope.appTitle = config.title;
+    $rootScope.appFooterTitle = config.footerTitle;
+    $rootScope.appFooterPoweredBy = config.footerPoweredBy;
+    $rootScope.footerConsoleVersion = null;
+    $rootScope.footerCoreVersion = null;
+    $rootScope.loginBanner = config.loginBanner;
 
-  // invoke Alerting factory to create all alert messages
-  Alerting.AlertValidationMsgs()
+    // Dark mode functionality
+    $rootScope.darkMode = false;
 
-  $rootScope.goToTop = function () {
-    $anchorScroll()
-  }
+    // Load dark mode preference from localStorage
+    const savedDarkMode = localStorage.getItem("darkMode");
+    if (savedDarkMode === "true") {
+      $rootScope.darkMode = true;
+      document.body.classList.add("dark-mode");
+    }
 
-  /* ------------------------------CHECK USER SESSION--------------------------------- */
-  // register listener to watch route changes
+    // Toggle dark mode function
+    $rootScope.toggleDarkMode = function () {
+      $rootScope.darkMode = !$rootScope.darkMode;
+      if ($rootScope.darkMode) {
+        document.body.classList.add("dark-mode");
+        localStorage.setItem("darkMode", "true");
+      } else {
+        document.body.classList.remove("dark-mode");
+        localStorage.setItem("darkMode", "false");
+      }
+    };
 
-  /* ------------------------------CHECK USER SESSION--------------------------------- */
-})
+    // invoke Alerting factory to create all alert messages
+    Alerting.AlertValidationMsgs();
+
+    $rootScope.goToTop = function () {
+      $anchorScroll();
+    };
+
+    /* ------------------------------CHECK USER SESSION--------------------------------- */
+    // register listener to watch route changes
+
+    // Toggle body class for home page (hides app chrome)
+    $rootScope.$on('$routeChangeSuccess', function (event, current) {
+      if (current && current.$$route && current.$$route.originalPath === '/home') {
+        document.body.classList.add('ndx-home-active');
+      } else {
+        document.body.classList.remove('ndx-home-active');
+      }
+    });
+
+    /* ------------------------------CHECK USER SESSION--------------------------------- */
+  },
+);

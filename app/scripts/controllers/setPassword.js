@@ -22,7 +22,7 @@ export function SetPasswordCtrl ($scope, $uibModal, $routeParams, $timeout, $loc
       Alerting.AlertAddMsg('top', 'danger', 'Invalid token')
     } else if (err.status === 410) {
       // expired new user
-      Alerting.AlertAddMsg('top', 'danger', 'The time to set the new user password has expired. Please contact your OpenHIM administrator to set your password')
+      Alerting.AlertAddMsg('top', 'danger', 'The time to set the new user password has expired. Please contact your NexaConn NDX administrator to set your password')
     } else {
       Alerting.AlertAddServerMsg(err.status)
     }
@@ -56,10 +56,10 @@ export function SetPasswordCtrl ($scope, $uibModal, $routeParams, $timeout, $loc
     // add the error message
     if (err.status === 410) {
       // expired new user
-      Alerting.AlertAddMsg('top', 'danger', 'The time to set the new user password has expired. Please contact your OpenHIM administrator to set your password')
+      Alerting.AlertAddMsg('top', 'danger', 'The time to set the new user password has expired. Please contact your NexaConn NDX administrator to set your password')
     } else {
       Alerting.AlertAddMsg('top', 'danger', 'An error has occurred while saving your details: #' + err.status + ' - ' + err.data)
-      Alerting.AlertAddMsg('top', 'danger', 'Please contact your OpenHIM administrator to set your password')
+      Alerting.AlertAddMsg('top', 'danger', 'Please contact your NexaConn NDX administrator to set your password')
     }
   }
 

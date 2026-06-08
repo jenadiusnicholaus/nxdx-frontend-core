@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 networks:
   openhim:
 
@@ -27,14 +27,14 @@ services:
     networks:
       - openhim
     healthcheck:
-     test: "curl -sS http://openhim-core:8080/heartbeat || exit 1"
-     interval: 30s
-     timeout: 30s
-     retries: 3
+      test: "curl -sS http://openhim-core:8080/heartbeat || exit 1"
+      interval: 30s
+      timeout: 30s
+      retries: 3
 
   openhim-console:
     container_name: openhim-console
-    image: harbor.jembidev.org/platform/openhim-console:latest
+    image: nexacon-openhim-console:latest
     restart: unless-stopped
     networks:
       - openhim
@@ -43,10 +43,10 @@ services:
     volumes:
       - "../app/config/default.json:/usr/share/nginx/html/config/default.json"
     healthcheck:
-     test: "curl -sS http://openhim-console || exit 1"
-     interval: 30s
-     timeout: 30s
-     retries: 3
+      test: "curl -sS http://openhim-console || exit 1"
+      interval: 30s
+      timeout: 30s
+      retries: 3
 
 volumes:
   mongo-data:

@@ -8,7 +8,7 @@
           <div class="panel-title">
             <h2><i class="glyphicon glyphicon-random"></i>&nbsp;&nbsp;Channels</h2>
             <p class="text-muted">
-              Create and manage channels. A channel in the OpenHIM captures a request that matches the channel configuration and routes those requests to one or more routes that are defined in the channel config. The response from the primary route will be returned to the request sender as soon as the OpenHIM receives it.
+              Create and manage channels. A channel in the NexaConn NDX captures a request that matches the channel configuration and routes those requests to one or more routes that are defined in the channel config. The response from the primary route will be returned to the request sender as soon as the NexaConn NDX receives it.
             </p>
           </div>
         </div>
@@ -85,9 +85,9 @@
                   <td data-title="Monitoring"><a href="#!/channels/{{channel._id}}">Show metrics</a></td>
                   <td data-title="status">
 
-                    <span style="font-size: 16px; color: #3c763d" ng-if="channel.status=='enabled' || !channel.status"><i class="glyphicon glyphicon-ok-circle"></i> Enabled</span>
-                    <span style="font-size: 16px; color: #f0ad4e" ng-if="channel.status=='disabled'"><i class="glyphicon glyphicon-remove-circle"></i> Disabled</span>
-                    <span style="font-size: 16px; color: #d9534f" ng-if="channel.status=='deleted'"><i class="glyphicon glyphicon-ban-circle"></i> Deleted</span>
+                    <span class="channel-status-enabled" ng-if="channel.status=='enabled' || !channel.status"><i class="glyphicon glyphicon-ok-circle"></i> Enabled</span>
+                    <span class="channel-status-disabled" ng-if="channel.status=='disabled'"><i class="glyphicon glyphicon-remove-circle"></i> Disabled</span>
+                    <span class="channel-status-deleted" ng-if="channel.status=='deleted'"><i class="glyphicon glyphicon-ban-circle"></i> Deleted</span>
 
                   </td>
                   <td>

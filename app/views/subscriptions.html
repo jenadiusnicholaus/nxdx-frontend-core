@@ -1,0 +1,180 @@
+<div class="page-content">
+  <div class="row">
+    <!-- include the sidebar -->
+    <div ng-include="'views/sidebar.html'"></div>
+    <div class="col-md-10">
+      <div class="content-box-large">
+
+        <div class="panel-heading">
+          <div class="panel-title">
+            <h2><i class="glyphicon glyphicon-bell"></i>&nbsp;&nbsp;NDX Subscriptions</h2>
+          </div>
+        </div>
+        
+        <!-- Subscription Alerts -->
+        <div class="alert alert-{{alert.type}} alert-dismissible" role="alert" ng-repeat="alert in alerts.subscription">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            {{alert.msg}}
+        </div>
+        
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-12">
+              <button class="btn btn-primary" ng-click="openAddSubscriptionModal()">
+                <i class="glyphicon glyphicon-plus"></i> Add Subscription
+              </button>
+            </div>
+          </div>
+          
+          <div class="row" style="margin-top: 20px;">
+            <div class="col-md-12">
+              <table class="table table-striped table-list">
+                <thead>
+                  <tr>
+                    <th>Subscriber ID</th>
+                    <th>Subscriber Name</th>
+                    <th>Data Type</th>
+                    <th>Format</th>
+                    <th>Endpoint</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr ng-repeat="subscription in subscriptions">
+                    <td>{{ subscription.subscriberId }}</td>
+                    <td>{{ subscription.subscriberName }}</td>
+                    <td>{{ subscription.dataType }}</td>
+                    <td>{{ subscription.format }}</td>
+                    <td>{{ subscription.endpoint }}</td>
+                    <td>
+                      <span class="label" ng-class="subscription.active ? 'label-success' : 'label-danger'">
+                        {{ subscription.active ? 'Active' : 'Inactive' }}
+                      </span>
+                    </td>
+                    <td>
+                      <button class="btn btn-sm btn-info" ng-click="editSubscription(subscription)" title="Edit">
+                        <i class="glyphicon glyphicon-edit"></i>
+                      </button>
+                      <button class="btn btn-sm btn-warning" ng-click="toggleSubscriptionStatus(subscription)" title="Toggle Status">
+                        <i class="glyphicon" ng-class="subscription.active ? 'glyphicon-pause' : 'glyphicon-play'"></i>
+                      </button>
+                      <button class="btn btn-sm btn-danger" ng-click="deleteSubscription(subscription)" title="Delete">
+                        <i class="glyphicon glyphicon-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr ng-if="subscriptions.length === 0">
+                    <td colspan="7" class="text-center">No subscriptions found. Click "Add Subscription" to create one.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Subscription Modal -->
+<script type="text/ng-template" id="subscriptionModal.html">
+  <div class="modal-header">
+    <h3 class="modal-title">{{ isEdit ? 'Edit Subscription' : 'Add Subscription' }}</h3>
+  </div>
+  <div class="modal-body">
+    <form class="form-horizontal">
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Subscriber ID</label>
+        <div class="col-sm-9">
+          <input type="text" class="form-control" ng-model="currentSubscription.subscriberId" placeholder="e.g., lab-system-001" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Subscriber Name</label>
+        <div class="col-sm-9">
+          <input type="text" class="form-control" ng-model="currentSubscription.subscriberName" placeholder="e.g., Lab System" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Endpoint URL</label>
+        <div class="col-sm-9">
+          <input type="url" class="form-control" ng-model="currentSubscription.endpoint" placeholder="e.g., https://hospital.com/api/data" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Data Type</label>
+        <div class="col-sm-9">
+          <select class="form-control" ng-model="currentSubscription.dataType" required>
+            <option value="">Select Data Type</option>
+            <option value="patient-data">Patient Data</option>
+            <option value="lab-results">Lab Results</option>
+            <option value="prescriptions">Prescriptions</option>
+            <option value="vitals">Vitals</option>
+            <option value="admissions">Admissions</option>
+            <option value="discharges">Discharges</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Format</label>
+        <div class="col-sm-9">
+          <select class="form-control" ng-model="currentSubscription.format" required>
+            <option value="json">JSON</option>
+            <option value="xml">XML</option>
+            <option value="hl7">HL7</option>
+            <option value="fhir">FHIR</option>
+            <option value="csv">CSV</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Authentication Type</label>
+        <div class="col-sm-9">
+          <select class="form-control" ng-model="currentSubscription.authentication.type">
+            <option value="none">None</option>
+            <option value="basic">Basic Auth</option>
+            <option value="bearer">Bearer Token</option>
+            <option value="api-key">API Key</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" ng-if="currentSubscription.authentication.type === 'basic'">
+        <label class="col-sm-3 control-label">Username</label>
+        <div class="col-sm-9">
+          <input type="text" class="form-control" ng-model="currentSubscription.authentication.credentials.username">
+        </div>
+      </div>
+      <div class="form-group" ng-if="currentSubscription.authentication.type === 'basic'">
+        <label class="col-sm-3 control-label">Password</label>
+        <div class="col-sm-9">
+          <input type="password" class="form-control" ng-model="currentSubscription.authentication.credentials.password">
+        </div>
+      </div>
+      <div class="form-group" ng-if="currentSubscription.authentication.type === 'bearer'">
+        <label class="col-sm-3 control-label">Token</label>
+        <div class="col-sm-9">
+          <input type="text" class="form-control" ng-model="currentSubscription.authentication.credentials.token">
+        </div>
+      </div>
+      <div class="form-group" ng-if="currentSubscription.authentication.type === 'api-key'">
+        <label class="col-sm-3 control-label">API Key</label>
+        <div class="col-sm-9">
+          <input type="text" class="form-control" ng-model="currentSubscription.authentication.credentials.apiKey">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Status</label>
+        <div class="col-sm-9">
+          <label class="checkbox-inline">
+            <input type="checkbox" ng-model="currentSubscription.active"> Active
+          </label>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-default" ng-click="cancel()">Cancel</button>
+    <button class="btn btn-primary" ng-click="saveSubscription()">Save</button>
+  </div>
+</script>
