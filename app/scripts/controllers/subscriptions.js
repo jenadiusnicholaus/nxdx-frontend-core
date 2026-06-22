@@ -1,147 +1,458 @@
-export function SubscriptionsCtrl ($rootScope, $scope, $uibModal, $http, Alerting) {
-  const MEDIATOR_URL = 'http://localhost:3000'
+export function SubscriptionsCtrl(
+  $rootScope,
+  $scope,
+  $uibModal,
+  $http,
+  $window,
+  config,
+  Alerting,
+  Api,
+) {
+  const CORE_API_URL =
+    config.protocol + "://" + config.host + ":" + config.port;
 
   const queryError = function (err) {
-    Alerting.AlertAddServerMsg(err.status)
+    Alerting.AlertAddServerMsg(err.status);
+  };
+
+  $scope.activeTab = "plans";
+  $scope.plans = [];
+  $scope.mySubscriptions = [];
+  $scope.allSubscriptions = [];
+
+  // Dynamic role check to ensure consistent admin detection
+  $scope.isAdmin = function () {
+    return $rootScope.userGroupAdmin === true;
+  };
+
+  /* -------------------------Load Data---------------------------- */
+  const loadPlans = function () {
+    $http
+      .get(`${CORE_API_URL}/subscription-plans`, { withCredentials: true })
+      .then(function (response) {
+        $scope.plans = response.data;
+      }, queryError);
+  };
+
+  const loadMySubscriptions = function () {
+    $http
+      .get(`${CORE_API_URL}/subscriptions/mine`, { withCredentials: true })
+      .then(function (response) {
+        // Fetch plan data separately for each subscription
+        const subscriptions = response.data;
+        const promises = subscriptions.map(function (sub) {
+          if (sub.planId && typeof sub.planId === "string") {
+            return $http
+              .get(`${CORE_API_URL}/subscription-plans/${sub.planId}`, {
+                withCredentials: true,
+              })
+              .then(function (planResponse) {
+                sub.planId = planResponse.data;
+                return sub;
+              })
+              .catch(function () {
+                return sub; // Return original if plan fetch fails
+              });
+          }
+          return Promise.resolve(sub);
+        });
+
+        Promise.all(promises).then(function (enrichedSubscriptions) {
+          $scope.mySubscriptions = enrichedSubscriptions;
+        });
+      }, queryError);
+  };
+
+  const loadAllSubscriptions = function () {
+    $http
+      .get(`${CORE_API_URL}/subscriptions`, { withCredentials: true })
+      .then(function (response) {
+        $scope.allSubscriptions = response.data;
+      }, queryError);
+  };
+
+  loadPlans();
+  loadMySubscriptions();
+  if ($scope.isAdmin()) {
+    loadAllSubscriptions();
   }
 
-  /* -------------------------Load Subscriptions---------------------------- */
-  const loadSubscriptions = function () {
-    $http.get(`${MEDIATOR_URL}/subscriptions`)
-      .then(function (response) {
-        $scope.subscriptions = response.data
-        if (response.data.length === 0) {
-          Alerting.AlertAddMsg('bottom', 'warning', 'There are currently no subscriptions created')
+  $scope.$on("subscriptionsChanged", function () {
+    loadMySubscriptions();
+    if ($scope.isAdmin()) loadAllSubscriptions();
+  });
+  $scope.$on("plansChanged", loadPlans);
+  /* -------------------------End Load Data---------------------------- */
+
+  /* -------------------------Subscription Plans CRUD---------------------------- */
+  $scope.openAddPlanModal = function (existingPlan) {
+    $uibModal
+      .open({
+        template: require("~/views/subscriptions.html").match(
+          /<script[^>]*id="planModal"[^>]*>([\s\S]*?)<\/script>/m,
+        )[1],
+        controller: function ($scope, $uibModalInstance) {
+          $scope.isEdit = !!existingPlan;
+          $scope.plan = existingPlan
+            ? angular.copy(existingPlan)
+            : {
+                name: "",
+                description: "",
+                price: 0,
+                currency: "usd",
+                interval: "month",
+                duration: 30,
+                featuresText: "",
+                channelLimit: 0,
+                requestLimit: 0,
+                allowedEndpoints: "*",
+                active: true,
+              };
+
+          if (existingPlan && existingPlan.features) {
+            $scope.plan.featuresText = existingPlan.features.join("\n");
+          }
+
+          $scope.save = function () {
+            const planToSave = angular.copy($scope.plan);
+            if (planToSave.featuresText) {
+              planToSave.features = planToSave.featuresText
+                .split("\n")
+                .filter((f) => f.trim());
+            }
+            if (typeof planToSave.allowedEndpoints === "string") {
+              planToSave.allowedEndpoints = planToSave.allowedEndpoints
+                .split(",")
+                .map((e) => e.trim());
+            }
+            delete planToSave.featuresText;
+            $uibModalInstance.close(planToSave);
+          };
+          $scope.cancel = function () {
+            $uibModalInstance.dismiss("cancel");
+          };
+        },
+        size: "md",
+      })
+      .result.then(function (plan) {
+        if (existingPlan) {
+          $http
+            .put(
+              `${CORE_API_URL}/subscription-plans/${existingPlan._id}`,
+              plan,
+              { withCredentials: true },
+            )
+            .then(
+              function () {
+                Alerting.AlertAddMsg(
+                  "top",
+                  "success",
+                  "Plan updated successfully",
+                );
+                $scope.$emit("plansChanged");
+              },
+              function (err) {
+                Alerting.AlertAddMsg(
+                  "top",
+                  "danger",
+                  "Failed to update plan: " + (err.data || err.statusText),
+                );
+              },
+            );
         } else {
-          Alerting.AlertReset('bottom')
+          $http
+            .post(`${CORE_API_URL}/subscription-plans`, plan, {
+              withCredentials: true,
+            })
+            .then(
+              function () {
+                Alerting.AlertAddMsg(
+                  "top",
+                  "success",
+                  "Plan created successfully",
+                );
+                $scope.$emit("plansChanged");
+              },
+              function (err) {
+                Alerting.AlertAddMsg(
+                  "top",
+                  "danger",
+                  "Failed to create plan: " + (err.data || err.statusText),
+                );
+              },
+            );
         }
-      }, queryError)
-  }
+      });
+  };
 
-  loadSubscriptions()
-
-  $scope.$on('subscriptionsChanged', function () {
-    loadSubscriptions()
-  })
-  /* -------------------------End Load Subscriptions---------------------------- */
-
-  /* -------------------------Add/Edit Subscription Modal---------------------------- */
-  $scope.openAddSubscriptionModal = function () {
-    Alerting.AlertReset()
-    $scope.isEdit = false
-    $scope.currentSubscription = {
-      subscriberId: '',
-      subscriberName: '',
-      endpoint: '',
-      dataType: '',
-      format: 'json',
-      authentication: {
-        type: 'none',
-        credentials: {}
-      },
-      active: true
-    }
-
-    $uibModal.open({
-      template: require('~/views/subscriptions.html').match(/<script[^>]*>([\s\S]*?)<\/script>/m)[1],
-      controller: function ($scope, $uibModalInstance) {
-        $scope.isEdit = false
-        $scope.currentSubscription = {
-          subscriberId: '',
-          subscriberName: '',
-          endpoint: '',
-          dataType: '',
-          format: 'json',
-          authentication: {
-            type: 'none',
-            credentials: {}
-          },
-          active: true
-        }
-
-        $scope.saveSubscription = function () {
-          $uibModalInstance.close($scope.currentSubscription)
-        }
-
-        $scope.cancel = function () {
-          $uibModalInstance.dismiss('cancel')
-        }
-      },
-      size: 'lg'
-    }).result.then(function (subscription) {
-      saveSubscription(subscription)
-    })
-  }
-
-  $scope.editSubscription = function (subscription) {
-    Alerting.AlertReset()
-    $scope.isEdit = true
-    $scope.currentSubscription = angular.copy(subscription)
-
-    $uibModal.open({
-      template: require('~/views/subscriptions.html').match(/<script[^>]*>([\s\S]*?)<\/script>/m)[1],
-      controller: function ($scope, $uibModalInstance, subscription) {
-        $scope.isEdit = true
-        $scope.currentSubscription = angular.copy(subscription)
-
-        $scope.saveSubscription = function () {
-          $uibModalInstance.close($scope.currentSubscription)
-        }
-
-        $scope.cancel = function () {
-          $uibModalInstance.dismiss('cancel')
-        }
-      },
-      resolve: {
-        subscription: function () {
-          return subscription
-        }
-      },
-      size: 'lg'
-    }).result.then(function (subscription) {
-      updateSubscription(subscription)
-    })
-  }
-
-  const saveSubscription = function (subscription) {
-    $http.post(`${MEDIATOR_URL}/subscriptions`, subscription)
-      .then(function (response) {
-        Alerting.AlertAddMsg('top', 'success', 'Subscription created successfully')
-        $scope.$emit('subscriptionsChanged')
-      }, function (error) {
-        Alerting.AlertAddMsg('top', 'danger', 'Failed to create subscription: ' + error.data.error)
-      })
-  }
-
-  const updateSubscription = function (subscription) {
-    $http.put(`${MEDIATOR_URL}/subscriptions/${subscription._id}`, subscription)
-      .then(function (response) {
-        Alerting.AlertAddMsg('top', 'success', 'Subscription updated successfully')
-        $scope.$emit('subscriptionsChanged')
-      }, function (error) {
-        Alerting.AlertAddMsg('top', 'danger', 'Failed to update subscription: ' + error.data.error)
-      })
-  }
-  /* -------------------------End Add/Edit Subscription Modal---------------------------- */
-
-  /* -------------------------Toggle Subscription Status---------------------------- */
-  $scope.toggleSubscriptionStatus = function (subscription) {
-    subscription.active = !subscription.active
-    updateSubscription(subscription)
-  }
-  /* -------------------------End Toggle Subscription Status---------------------------- */
-
-  /* -------------------------Delete Subscription---------------------------- */
-  $scope.deleteSubscription = function (subscription) {
-    if (confirm('Are you sure you want to delete this subscription?')) {
-      $http.delete(`${MEDIATOR_URL}/subscriptions/${subscription._id}`)
-        .then(function (response) {
-          Alerting.AlertAddMsg('top', 'success', 'Subscription deleted successfully')
-          $scope.$emit('subscriptionsChanged')
-        }, function (error) {
-          Alerting.AlertAddMsg('top', 'danger', 'Failed to delete subscription: ' + error.data.error)
+  $scope.deletePlan = function (plan) {
+    if (confirm('Delete plan "' + plan.name + '"? This cannot be undone.')) {
+      $http
+        .delete(`${CORE_API_URL}/subscription-plans/${plan._id}`, {
+          withCredentials: true,
         })
+        .then(function () {
+          Alerting.AlertAddMsg("top", "success", "Plan deleted");
+          $scope.$emit("plansChanged");
+        }, queryError);
     }
-  }
-  /* -------------------------End Delete Subscription---------------------------- */
+  };
+  /* -------------------------End Subscription Plans CRUD---------------------------- */
+
+  /* -------------------------Admin Subscription CRUD---------------------------- */
+  $scope.openAddSubscriptionModal = function (existingSub) {
+    $uibModal
+      .open({
+        template: require("~/views/subscriptions.html").match(
+          /<script[^>]*id="subscriptionModal"[^>]*>([\s\S]*?)<\/script>/m,
+        )[1],
+        controller: function ($scope, $uibModalInstance, plans) {
+          $scope.isEdit = !!existingSub;
+          $scope.currentSubscription = existingSub
+            ? angular.copy(existingSub)
+            : {
+                clientID: "",
+                planId: "",
+                status: "pending",
+                paymentStatus: "pending",
+                startDate: new Date().toISOString().split("T")[0],
+                endDate: "",
+              };
+          $scope.plans = plans;
+
+          $scope.save = function () {
+            $uibModalInstance.close($scope.currentSubscription);
+          };
+          $scope.cancel = function () {
+            $uibModalInstance.dismiss("cancel");
+          };
+        },
+        resolve: {
+          plans: function () {
+            return $scope.plans;
+          },
+        },
+        size: "lg",
+      })
+      .result.then(function (sub) {
+        if (existingSub) {
+          $http
+            .put(`${CORE_API_URL}/subscriptions/${existingSub._id}`, sub, {
+              withCredentials: true,
+            })
+            .then(
+              function () {
+                Alerting.AlertAddMsg("top", "success", "Subscription updated");
+                $scope.$emit("subscriptionsChanged");
+              },
+              function (err) {
+                Alerting.AlertAddMsg(
+                  "top",
+                  "danger",
+                  "Failed: " + (err.data || err.statusText),
+                );
+              },
+            );
+        } else {
+          $http
+            .post(`${CORE_API_URL}/subscriptions`, sub, {
+              withCredentials: true,
+            })
+            .then(
+              function () {
+                Alerting.AlertAddMsg("top", "success", "Subscription created");
+                $scope.$emit("subscriptionsChanged");
+              },
+              function (err) {
+                Alerting.AlertAddMsg(
+                  "top",
+                  "danger",
+                  "Failed: " + (err.data || err.statusText),
+                );
+              },
+            );
+        }
+      });
+  };
+
+  $scope.editSubscription = function (sub) {
+    $scope.openAddSubscriptionModal(sub);
+  };
+
+  $scope.toggleStatus = function (sub) {
+    const newStatus = sub.status === "active" ? "suspended" : "active";
+    $http
+      .put(
+        `${CORE_API_URL}/subscriptions/${sub._id}`,
+        { status: newStatus },
+        { withCredentials: true },
+      )
+      .then(function () {
+        Alerting.AlertAddMsg("top", "success", "Subscription status updated");
+        $scope.$emit("subscriptionsChanged");
+      }, queryError);
+  };
+
+  $scope.deleteSubscription = function (sub) {
+    if (confirm('Delete subscription for "' + sub.clientID + '"?')) {
+      $http
+        .delete(`${CORE_API_URL}/subscriptions/${sub._id}`, {
+          withCredentials: true,
+        })
+        .then(function () {
+          Alerting.AlertAddMsg("top", "success", "Subscription deleted");
+          $scope.$emit("subscriptionsChanged");
+        }, queryError);
+    }
+  };
+  /* -------------------------End Admin Subscription CRUD---------------------------- */
+
+  /* -------------------------Client Subscribe Flow---------------------------- */
+  $scope.subscribeToPlan = function (plan) {
+    $uibModal.open({
+      template: require("~/views/subscriptions.html").match(
+        /<script[^>]*id="subscribeModal"[^>]*>([\s\S]*?)<\/script>/m,
+      )[1],
+      controller: function ($scope, $uibModalInstance, Api) {
+        $scope.selectedPlan = plan;
+        $scope.formData = {
+          clientID: "",
+        };
+        $scope.checkoutUrl = null;
+        $scope.loading = false;
+        $scope.error = null;
+        $scope.clients = [];
+        $scope.showCreateClient = false;
+        $scope.newClient = {
+          clientID: "",
+          name: "",
+          clientDomain: "",
+        };
+
+        // Load user's clients
+        Api.Clients.query(
+          function (clients) {
+            $scope.clients = clients;
+            $scope.showCreateClient = clients.length === 0;
+          },
+          function () {
+            $scope.showCreateClient = true;
+          },
+        );
+
+        $scope.createClient = function () {
+          if (!$scope.newClient.clientID || !$scope.newClient.name) return;
+          $scope.loading = true;
+          $scope.error = null;
+
+          const client = new Api.Clients();
+          client.clientID = $scope.newClient.clientID;
+          client.name = $scope.newClient.name;
+          client.clientDomain = $scope.newClient.clientID + "@openhim.org";
+          client.ownerEmail = $rootScope.sessionUser;
+
+          client.$save(
+            function (savedClient) {
+              $scope.clients.push(savedClient);
+              $scope.formData.clientID = savedClient.clientID;
+              $scope.showCreateClient = false;
+              $scope.loading = false;
+            },
+            function (err) {
+              $scope.loading = false;
+              $scope.error = err.data || err.statusText;
+            },
+          );
+        };
+
+        $scope.createCheckout = function () {
+          console.log("createCheckout called");
+          console.log("clientID:", $scope.formData.clientID);
+          console.log("selectedPlan:", $scope.selectedPlan);
+          if (!$scope.formData.clientID) {
+            console.log("No clientID provided");
+            return;
+          }
+          $scope.loading = true;
+          $scope.error = null;
+          $http
+            .post(
+              `${CORE_API_URL}/subscriptions/checkout`,
+              {
+                clientID: $scope.formData.clientID,
+                planId: $scope.selectedPlan._id,
+              },
+              { withCredentials: true },
+            )
+            .then(
+              function (response) {
+                console.log("Checkout response:", response);
+                $scope.checkoutUrl = response.data.checkoutUrl;
+                $scope.loading = false;
+              },
+              function (err) {
+                console.log("Checkout error:", err);
+                $scope.loading = false;
+                $scope.error = err.data || err.statusText;
+              },
+            );
+        };
+
+        $scope.openStripe = function () {
+          $window.open($scope.checkoutUrl, "_blank");
+        };
+
+        $scope.cancel = function () {
+          $uibModalInstance.dismiss("cancel");
+        };
+      },
+      size: "md",
+    });
+  };
+
+  $scope.renewSubscription = function (sub) {
+    $scope.subscribeToPlan(sub.planId);
+  };
+
+  $scope.upgradeSubscription = function (sub) {
+    $scope.activeTab = "plans";
+    Alerting.AlertAddMsg("top", "info", "Select a higher-tier plan to upgrade");
+  };
+  /* -------------------------End Client Subscribe Flow---------------------------- */
+
+  /* -------------------------Helpers---------------------------- */
+  $scope.statusClass = function (status) {
+    return (
+      {
+        active: "label-success",
+        pending: "label-warning",
+        expired: "label-danger",
+        cancelled: "label-default",
+        suspended: "label-danger",
+      }[status] || "label-default"
+    );
+  };
+
+  $scope.paymentStatusClass = function (status) {
+    return (
+      {
+        paid: "label-success",
+        pending: "label-warning",
+        failed: "label-danger",
+        refunded: "label-default",
+      }[status] || "label-default"
+    );
+  };
+
+  $scope.isSubscribed = function (planId) {
+    if (!planId || !$scope.mySubscriptions) return false;
+    return $scope.mySubscriptions.some(function (sub) {
+      if (!sub.planId || sub.status !== "active") return false;
+      // Handle both cases: planId as string or as object with _id
+      const subPlanId =
+        typeof sub.planId === "string" ? sub.planId : sub.planId._id;
+      return subPlanId === planId;
+    });
+  };
+  /* -------------------------End Helpers---------------------------- */
 }

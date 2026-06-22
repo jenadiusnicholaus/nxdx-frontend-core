@@ -1,75 +1,601 @@
 <div class="page-content">
+  <style>
+    @media (max-width: 768px) {
+      .plan-card .panel-heading h3 {
+        font-size: 16px !important;
+      }
+      .plan-card .panel-heading > div > span:first-of-type {
+        font-size: 22px !important;
+      }
+      .plan-card .panel-heading p {
+        font-size: 11px !important;
+      }
+      .plan-card .panel-body ul {
+        font-size: 11px !important;
+      }
+      .plan-card .panel-body {
+        padding: 10px !important;
+      }
+    }
+    @media (max-width: 480px) {
+      .plan-card .panel-heading h3 {
+        font-size: 14px !important;
+      }
+      .plan-card .panel-heading > div > span:first-of-type {
+        font-size: 20px !important;
+      }
+      .plan-card .panel-heading p {
+        font-size: 10px !important;
+      }
+      .plan-card .panel-body ul {
+        font-size: 10px !important;
+      }
+      .plan-card .panel-body {
+        padding: 8px !important;
+      }
+    }
+  </style>
   <div class="row">
-    <!-- include the sidebar -->
     <div ng-include="'views/sidebar.html'"></div>
     <div class="col-md-10">
       <div class="content-box-large">
-
         <div class="panel-heading">
           <div class="panel-title">
-            <h2><i class="glyphicon glyphicon-bell"></i>&nbsp;&nbsp;NDX Subscriptions</h2>
+            <h2>
+              <i class="glyphicon glyphicon-bell"></i>&nbsp;&nbsp;NDX
+              Subscriptions
+            </h2>
           </div>
         </div>
-        
-        <!-- Subscription Alerts -->
-        <div class="alert alert-{{alert.type}} alert-dismissible" role="alert" ng-repeat="alert in alerts.subscription">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            {{alert.msg}}
-        </div>
-        
+
+        <!-- Tabs -->
+        <ul class="nav nav-tabs" style="margin: 0 15px">
+          <li ng-class="{active: activeTab === 'plans'}">
+            <a href="" ng-click="activeTab='plans'">
+              <i class="glyphicon glyphicon-th-list"></i> Available Plans
+            </a>
+          </li>
+          <li ng-class="{active: activeTab === 'my-subscriptions'}">
+            <a href="" ng-click="activeTab='my-subscriptions'">
+              <i class="glyphicon glyphicon-list"></i> My Subscriptions
+            </a>
+          </li>
+          <li
+            ng-class="{active: activeTab === 'all-subscriptions'}"
+            ng-if="isAdmin()"
+          >
+            <a href="" ng-click="activeTab='all-subscriptions'">
+              <i class="glyphicon glyphicon-cog"></i> Manage All
+            </a>
+          </li>
+        </ul>
+
         <div class="panel-body">
-          <div class="row">
-            <div class="col-md-12">
-              <button class="btn btn-primary" ng-click="openAddSubscriptionModal()">
-                <i class="glyphicon glyphicon-plus"></i> Add Subscription
-              </button>
+          <!-- ===== AVAILABLE PLANS TAB ===== -->
+          <div ng-show="activeTab === 'plans'">
+            <div class="row" style="margin-bottom: 15px" ng-if="isAdmin()">
+              <div class="col-md-12">
+                <button class="btn btn-primary" ng-click="openAddPlanModal()">
+                  <i class="glyphicon glyphicon-plus"></i> Add Plan
+                </button>
+              </div>
+            </div>
+            <div class="row" ng-if="plans.length === 0">
+              <div
+                class="col-md-12 text-center text-muted"
+                style="padding: 40px"
+              >
+                No subscription plans available.
+              </div>
+            </div>
+            <div class="row" style="display: flex; flex-wrap: wrap">
+              <div
+                class="col-md-3 col-sm-6 col-xs-12"
+                ng-repeat="plan in plans"
+                style="margin-bottom: 15px; display: flex"
+              >
+                <div
+                  class="panel plan-card"
+                  ng-class="isSubscribed(plan._id) ? 'panel-primary' : 'panel-default'"
+                  style="
+                    border: 1px solid #e0e0e0;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+                    width: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    transition: all 0.3s ease;
+                    cursor: pointer;
+                  "
+                  ng-style="isSubscribed(plan._id) ? {'border': '2px solid #337ab7', 'box-shadow': '0 6px 20px rgba(51, 122, 183, 0.4)', 'transform': 'translateY(-4px)'} : {}"
+                  ng-mouseenter="!isSubscribed(plan._id) && (this.style.boxShadow='0 6px 20px rgba(0, 0, 0, 0.12)')"
+                  ng-mouseleave="!isSubscribed(plan._id) && (this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.08)')"
+                >
+                  <div
+                    class="panel-heading text-center"
+                    ng-style="isSubscribed(plan._id) ? {'background': 'linear-gradient(135deg, #337ab7 0%, #286090 100%)', 'color': 'white'} : {'background': 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', 'color': '#333'}"
+                    style="
+                      border-radius: 8px 8px 0 0;
+                      padding: 15px 10px;
+                      transition: all 0.3s ease;
+                    "
+                  >
+                    <span
+                      ng-if="isSubscribed(plan._id)"
+                      class="pull-right"
+                      style="
+                        font-size: 12px;
+                        background: white;
+                        color: #337ab7;
+                        padding: 2px 8px;
+                        border-radius: 10px;
+                        font-weight: bold;
+                      "
+                    >
+                      CURRENT
+                    </span>
+                    <h3
+                      style="
+                        margin: 0 0 8px 0;
+                        font-size: 18px;
+                        font-weight: 700;
+                        letter-spacing: 0.5px;
+                      "
+                      ng-style="isSubscribed(plan._id) ? {'color': 'white'} : {'color': '#333'}"
+                    >
+                      {{ plan.name }}
+                    </h3>
+                    <div style="margin: 8px 0">
+                      <span
+                        style="
+                          font-size: 28px;
+                          font-weight: 800;
+                          background: linear-gradient(
+                            135deg,
+                            #337ab7 0%,
+                            #5bc0de 100%
+                          );
+                          -webkit-background-clip: text;
+                          -webkit-text-fill-color: transparent;
+                          background-clip: text;
+                        "
+                        ng-style="isSubscribed(plan._id) ? {'background': 'white', '-webkit-background-clip': 'text', '-webkit-text-fill-color': 'white', 'background-clip': 'text'} : {}"
+                      >
+                        ${{ (plan.price / 100).toFixed(2) }}
+                      </span>
+                      <span
+                        style="font-size: 13px; color: #777; font-weight: 500"
+                        ng-style="isSubscribed(plan._id) ? {'color': 'rgba(255,255,255,0.8)'} : {}"
+                        >/ {{ plan.interval }}</span
+                      >
+                    </div>
+                    <p
+                      class="text-muted"
+                      style="margin: 0; font-size: 12px; line-height: 1.4"
+                      ng-style="isSubscribed(plan._id) ? {'color': 'rgba(255,255,255,0.9)'} : {}"
+                    >
+                      {{ plan.description }}
+                    </p>
+                  </div>
+                  <div
+                    class="panel-body"
+                    style="
+                      padding: 12px;
+                      flex: 1;
+                      display: flex;
+                      flex-direction: column;
+                      background: white;
+                    "
+                    ng-style="isSubscribed(plan._id) ? {'background': 'rgba(51, 122, 183, 0.05)'} : {}"
+                  >
+                    <ul
+                      class="list-unstyled"
+                      style="margin: 0; font-size: 12px; flex: 1"
+                    >
+                      <li
+                        ng-repeat="feature in plan.features"
+                        style="
+                          padding: 6px 0;
+                          border-bottom: 1px solid #f0f0f0;
+                          color: #555;
+                          line-height: 1.4;
+                          display: flex;
+                          align-items: flex-start;
+                        "
+                      >
+                        <i
+                          class="glyphicon glyphicon-ok"
+                          style="
+                            font-size: 11px;
+                            color: #28a745;
+                            margin-right: 8px;
+                            margin-top: 2px;
+                          "
+                        ></i>
+                        <span>{{ feature }}</span>
+                      </li>
+                      <li
+                        style="
+                          padding: 6px 0;
+                          border-bottom: 1px solid #f0f0f0;
+                          color: #555;
+                          display: flex;
+                          align-items: center;
+                        "
+                      >
+                        <i
+                          class="glyphicon glyphicon-hdd"
+                          style="
+                            font-size: 11px;
+                            color: #337ab7;
+                            margin-right: 8px;
+                          "
+                        ></i>
+                        <span
+                          ><strong>Channels:</strong>
+                          <span ng-if="plan.channelLimit > 0">
+                            {{ plan.channelLimit }}</span
+                          >
+                          <span ng-if="plan.channelLimit === 0">
+                            Unlimited</span
+                          ></span
+                        >
+                      </li>
+                      <li
+                        style="
+                          padding: 6px 0;
+                          border-bottom: 1px solid #f0f0f0;
+                          color: #555;
+                          display: flex;
+                          align-items: center;
+                        "
+                      >
+                        <i
+                          class="glyphicon glyphicon-transfer"
+                          style="
+                            font-size: 11px;
+                            color: #337ab7;
+                            margin-right: 8px;
+                          "
+                        ></i>
+                        <span
+                          ><strong>API:</strong>
+                          <span ng-if="plan.requestLimit > 0">
+                            {{ (plan.requestLimit/1000).toFixed(0) }}k/mo</span
+                          >
+                          <span ng-if="plan.requestLimit === 0">
+                            Unlimited</span
+                          ></span
+                        >
+                      </li>
+                      <li
+                        style="
+                          padding: 6px 0;
+                          color: #555;
+                          display: flex;
+                          align-items: center;
+                        "
+                      >
+                        <i
+                          class="glyphicon glyphicon-time"
+                          style="
+                            font-size: 11px;
+                            color: #337ab7;
+                            margin-right: 8px;
+                          "
+                        ></i>
+                        <span
+                          ><strong>Duration:</strong> {{ plan.duration }}
+                          days</span
+                        >
+                      </li>
+                    </ul>
+                    <button
+                      class="btn btn-block"
+                      ng-click="subscribeToPlan(plan)"
+                      ng-if="!isAdmin()"
+                      ng-style="isSubscribed(plan._id) ? {'background': 'linear-gradient(135deg, #28a745 0%, #218838 100%)', 'border': 'none', 'color': 'white'} : {'background': 'linear-gradient(135deg, #5bc0de 0%, #46b8da 100%)', 'border': 'none', 'color': 'white'}"
+                      style="
+                        margin-top: 10px;
+                        padding: 10px;
+                        font-weight: 600;
+                        border-radius: 6px;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                      "
+                      ng-mouseenter="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0, 0, 0, 0.15)'"
+                      ng-mouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0, 0, 0, 0.1)'"
+                    >
+                      <i class="glyphicon glyphicon-credit-card"></i> Subscribe
+                    </button>
+                    <div ng-if="isAdmin()" style="text-align: center">
+                      <button
+                        class="btn btn-sm btn-info"
+                        ng-click="openAddPlanModal(plan)"
+                      >
+                        <i class="glyphicon glyphicon-edit"></i> Edit
+                      </button>
+                      <button
+                        class="btn btn-sm btn-danger"
+                        ng-click="deletePlan(plan)"
+                      >
+                        <i class="glyphicon glyphicon-trash"></i> Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          
-          <div class="row" style="margin-top: 20px;">
-            <div class="col-md-12">
-              <table class="table table-striped table-list">
-                <thead>
-                  <tr>
-                    <th>Subscriber ID</th>
-                    <th>Subscriber Name</th>
-                    <th>Data Type</th>
-                    <th>Format</th>
-                    <th>Endpoint</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr ng-repeat="subscription in subscriptions">
-                    <td>{{ subscription.subscriberId }}</td>
-                    <td>{{ subscription.subscriberName }}</td>
-                    <td>{{ subscription.dataType }}</td>
-                    <td>{{ subscription.format }}</td>
-                    <td>{{ subscription.endpoint }}</td>
-                    <td>
-                      <span class="label" ng-class="subscription.active ? 'label-success' : 'label-danger'">
-                        {{ subscription.active ? 'Active' : 'Inactive' }}
-                      </span>
-                    </td>
-                    <td>
-                      <button class="btn btn-sm btn-info" ng-click="editSubscription(subscription)" title="Edit">
-                        <i class="glyphicon glyphicon-edit"></i>
-                      </button>
-                      <button class="btn btn-sm btn-warning" ng-click="toggleSubscriptionStatus(subscription)" title="Toggle Status">
-                        <i class="glyphicon" ng-class="subscription.active ? 'glyphicon-pause' : 'glyphicon-play'"></i>
-                      </button>
-                      <button class="btn btn-sm btn-danger" ng-click="deleteSubscription(subscription)" title="Delete">
-                        <i class="glyphicon glyphicon-trash"></i>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr ng-if="subscriptions.length === 0">
-                    <td colspan="7" class="text-center">No subscriptions found. Click "Add Subscription" to create one.</td>
-                  </tr>
-                </tbody>
-              </table>
+
+          <!-- ===== MY SUBSCRIPTIONS TAB ===== -->
+          <div ng-show="activeTab === 'my-subscriptions'">
+            <!-- Current Active Plan Summary -->
+            <div class="row" ng-if="mySubscriptions.length > 0">
+              <div class="col-md-12">
+                <div
+                  class="panel panel-primary"
+                  style="
+                    border-radius: 6px;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                  "
+                >
+                  <div
+                    class="panel-heading"
+                    style="background: #337ab7; border-radius: 6px 6px 0 0"
+                  >
+                    <h4 style="margin: 0; color: white">
+                      <i class="glyphicon glyphicon-star"></i> Current
+                      Subscription
+                    </h4>
+                  </div>
+                  <div class="panel-body" style="padding: 20px">
+                    <div ng-repeat="sub in mySubscriptions">
+                      <div class="row">
+                        <div class="col-md-8">
+                          <h3 style="margin: 0 0 10px 0; color: #333">
+                            {{ sub.planId ? sub.planId.name : 'Unknown Plan' }}
+                          </h3>
+                          <p class="text-muted" style="margin: 0 0 15px 0">
+                            {{ sub.planId ? sub.planId.description : '' }}
+                          </p>
+                          <div
+                            style="display: flex; gap: 20px; flex-wrap: wrap"
+                          >
+                            <div>
+                              <strong>Price:</strong>
+                              <span ng-if="sub.planId && sub.planId.price">
+                                ${{ (sub.planId.price / 100).toFixed(2) }} / {{
+                                sub.planId.interval }}
+                              </span>
+                              <span ng-if="!sub.planId || !sub.planId.price"
+                                >N/A</span
+                              >
+                            </div>
+                            <div>
+                              <strong>Status:</strong>
+                              <span
+                                class="label"
+                                ng-class="statusClass(sub.status)"
+                                >{{ sub.status }}</span
+                              >
+                            </div>
+                            <div>
+                              <strong>Payment:</strong>
+                              <span
+                                class="label"
+                                ng-class="paymentStatusClass(sub.paymentStatus)"
+                                >{{ sub.paymentStatus }}</span
+                              >
+                            </div>
+                            <div ng-if="sub.endDate">
+                              <strong>Expires:</strong> {{ sub.endDate |
+                              date:'yyyy-MM-dd' }}
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-md-4 text-right">
+                          <button
+                            class="btn btn-success"
+                            ng-click="renewSubscription(sub)"
+                            ng-if="sub.status === 'expired' || sub.status === 'cancelled'"
+                          >
+                            <i class="glyphicon glyphicon-refresh"></i> Renew
+                          </button>
+                          <button
+                            class="btn btn-info"
+                            ng-click="upgradeSubscription(sub)"
+                            ng-if="sub.status === 'active'"
+                          >
+                            <i class="glyphicon glyphicon-arrow-up"></i> Upgrade
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      ng-if="!(mySubscriptions | filter:{status: 'active'}).length"
+                      class="text-center text-muted"
+                    >
+                      <p>
+                        No active subscription.
+                        <a href="" ng-click="activeTab='plans'"
+                          >Subscribe to a plan</a
+                        >
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
+
+            <div class="row" ng-if="mySubscriptions.length === 0">
+              <div
+                class="col-md-12 text-center text-muted"
+                style="padding: 40px"
+              >
+                <p>You don't have any subscriptions yet.</p>
+                <button class="btn btn-primary" ng-click="activeTab='plans'">
+                  <i class="glyphicon glyphicon-th-list"></i> View Available
+                  Plans
+                </button>
+              </div>
+            </div>
+            <div
+              class="row"
+              ng-repeat="sub in mySubscriptions"
+              style="margin-bottom: 20px"
+            >
+              <div class="col-md-12">
+                <div class="panel panel-default">
+                  <div class="panel-heading">
+                    <h4>
+                      {{ sub.planId ? sub.planId.name : 'Unknown Plan' }}
+                      <span class="pull-right">
+                        <span class="label" ng-class="statusClass(sub.status)"
+                          >{{ sub.status }}</span
+                        >
+                        <span
+                          class="label"
+                          ng-class="paymentStatusClass(sub.paymentStatus)"
+                          >{{ sub.paymentStatus }}</span
+                        >
+                      </span>
+                    </h4>
+                  </div>
+                  <div class="panel-body">
+                    <div class="row">
+                      <div class="col-md-6">
+                        <p>
+                          <strong>Plan:</strong> {{ sub.planId ? sub.planId.name
+                          : 'Unknown' }}
+                        </p>
+                        <p ng-if="sub.planId">
+                          <strong>Price:</strong> ${{ (sub.planId.price /
+                          100).toFixed(2) }} / {{ sub.planId.interval }}
+                        </p>
+                        <p>
+                          <strong>Start Date:</strong> {{ sub.startDate |
+                          date:'yyyy-MM-dd' }}
+                        </p>
+                        <p>
+                          <strong>End Date:</strong> {{ sub.endDate |
+                          date:'yyyy-MM-dd' }}
+                        </p>
+                        <p ng-if="sub.renewalDate">
+                          <strong>Renewal Date:</strong> {{ sub.renewalDate |
+                          date:'yyyy-MM-dd' }}
+                        </p>
+                      </div>
+                      <div class="col-md-6">
+                        <p>
+                          <strong>Transaction Reference:</strong>
+                          <code>{{ sub.transactionReference || 'N/A' }}</code>
+                        </p>
+                        <p ng-if="sub.stripeSubscriptionId">
+                          <strong>Stripe Subscription:</strong>
+                          <code>{{ sub.stripeSubscriptionId }}</code>
+                        </p>
+                        <div style="margin-top: 15px">
+                          <button
+                            class="btn btn-success"
+                            ng-click="renewSubscription(sub)"
+                            ng-if="sub.status === 'expired' || sub.status === 'cancelled'"
+                          >
+                            <i class="glyphicon glyphicon-refresh"></i> Renew
+                          </button>
+                          <button
+                            class="btn btn-info"
+                            ng-click="upgradeSubscription(sub)"
+                            ng-if="sub.status === 'active'"
+                          >
+                            <i class="glyphicon glyphicon-arrow-up"></i> Upgrade
+                            Plan
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== ALL SUBSCRIPTIONS TAB (admin only) ===== -->
+          <div ng-show="activeTab === 'all-subscriptions'" ng-if="isAdmin()">
+            <div class="row" style="margin-bottom: 15px">
+              <div class="col-md-12">
+                <button
+                  class="btn btn-primary"
+                  ng-click="openAddSubscriptionModal()"
+                >
+                  <i class="glyphicon glyphicon-plus"></i> Manually Add
+                  Subscription
+                </button>
+              </div>
+            </div>
+            <table class="table table-striped table-list">
+              <thead>
+                <tr>
+                  <th>Client ID</th>
+                  <th>User</th>
+                  <th>Plan</th>
+                  <th>Status</th>
+                  <th>Payment</th>
+                  <th>Start</th>
+                  <th>End</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr ng-repeat="sub in allSubscriptions">
+                  <td>{{ sub.clientID }}</td>
+                  <td>{{ sub.userId }}</td>
+                  <td>{{ sub.planId.name }}</td>
+                  <td>
+                    <span class="label" ng-class="statusClass(sub.status)"
+                      >{{ sub.status }}</span
+                    >
+                  </td>
+                  <td>
+                    <span
+                      class="label"
+                      ng-class="paymentStatusClass(sub.paymentStatus)"
+                      >{{ sub.paymentStatus }}</span
+                    >
+                  </td>
+                  <td>{{ sub.startDate | date:'yyyy-MM-dd' }}</td>
+                  <td>{{ sub.endDate | date:'yyyy-MM-dd' }}</td>
+                  <td>
+                    <button
+                      class="btn btn-sm btn-info"
+                      ng-click="editSubscription(sub)"
+                      title="Edit"
+                    >
+                      <i class="glyphicon glyphicon-edit"></i>
+                    </button>
+                    <button
+                      class="btn btn-sm btn-warning"
+                      ng-click="toggleStatus(sub)"
+                      title="Toggle Status"
+                    >
+                      <i class="glyphicon glyphicon-pause"></i>
+                    </button>
+                    <button
+                      class="btn btn-sm btn-danger"
+                      ng-click="deleteSubscription(sub)"
+                      title="Delete"
+                    >
+                      <i class="glyphicon glyphicon-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+                <tr ng-if="allSubscriptions.length === 0">
+                  <td colspan="8" class="text-center text-muted">
+                    No subscriptions found.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -77,104 +603,219 @@
   </div>
 </div>
 
-<!-- Add/Edit Subscription Modal -->
-<script type="text/ng-template" id="subscriptionModal.html">
+<!-- Add/Edit Plan Modal -->
+<script type="text/ng-template" id="planModal">
   <div class="modal-header">
-    <h3 class="modal-title">{{ isEdit ? 'Edit Subscription' : 'Add Subscription' }}</h3>
+    <h3 class="modal-title">{{ isEdit ? 'Edit Plan' : 'Add Plan' }}</h3>
   </div>
   <div class="modal-body">
     <form class="form-horizontal">
       <div class="form-group">
-        <label class="col-sm-3 control-label">Subscriber ID</label>
+        <label class="col-sm-3 control-label">Name</label>
         <div class="col-sm-9">
-          <input type="text" class="form-control" ng-model="currentSubscription.subscriberId" placeholder="e.g., lab-system-001" required>
+          <input type="text" class="form-control" ng-model="plan.name" placeholder="e.g., Starter, Professional, Enterprise" required>
         </div>
       </div>
       <div class="form-group">
-        <label class="col-sm-3 control-label">Subscriber Name</label>
+        <label class="col-sm-3 control-label">Description</label>
         <div class="col-sm-9">
-          <input type="text" class="form-control" ng-model="currentSubscription.subscriberName" placeholder="e.g., Lab System" required>
+          <input type="text" class="form-control" ng-model="plan.description" placeholder="Short description">
         </div>
       </div>
       <div class="form-group">
-        <label class="col-sm-3 control-label">Endpoint URL</label>
+        <label class="col-sm-3 control-label">Price (cents)</label>
         <div class="col-sm-9">
-          <input type="url" class="form-control" ng-model="currentSubscription.endpoint" placeholder="e.g., https://hospital.com/api/data" required>
+          <input type="number" class="form-control" ng-model="plan.price" placeholder="e.g., 4900 for $49.00" required>
+          <p class="help-block">Amount in smallest currency unit (cents). $49.00 = 4900</p>
         </div>
       </div>
       <div class="form-group">
-        <label class="col-sm-3 control-label">Data Type</label>
+        <label class="col-sm-3 control-label">Currency</label>
         <div class="col-sm-9">
-          <select class="form-control" ng-model="currentSubscription.dataType" required>
-            <option value="">Select Data Type</option>
-            <option value="patient-data">Patient Data</option>
-            <option value="lab-results">Lab Results</option>
-            <option value="prescriptions">Prescriptions</option>
-            <option value="vitals">Vitals</option>
-            <option value="admissions">Admissions</option>
-            <option value="discharges">Discharges</option>
+          <select class="form-control" ng-model="plan.currency">
+            <option value="usd">USD</option>
+            <option value="eur">EUR</option>
+            <option value="gbp">GBP</option>
           </select>
         </div>
       </div>
       <div class="form-group">
-        <label class="col-sm-3 control-label">Format</label>
+        <label class="col-sm-3 control-label">Billing Interval</label>
         <div class="col-sm-9">
-          <select class="form-control" ng-model="currentSubscription.format" required>
-            <option value="json">JSON</option>
-            <option value="xml">XML</option>
-            <option value="hl7">HL7</option>
-            <option value="fhir">FHIR</option>
-            <option value="csv">CSV</option>
+          <select class="form-control" ng-model="plan.interval">
+            <option value="month">Monthly</option>
+            <option value="year">Yearly</option>
           </select>
         </div>
       </div>
       <div class="form-group">
-        <label class="col-sm-3 control-label">Authentication Type</label>
+        <label class="col-sm-3 control-label">Duration (days)</label>
         <div class="col-sm-9">
-          <select class="form-control" ng-model="currentSubscription.authentication.type">
-            <option value="none">None</option>
-            <option value="basic">Basic Auth</option>
-            <option value="bearer">Bearer Token</option>
-            <option value="api-key">API Key</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-group" ng-if="currentSubscription.authentication.type === 'basic'">
-        <label class="col-sm-3 control-label">Username</label>
-        <div class="col-sm-9">
-          <input type="text" class="form-control" ng-model="currentSubscription.authentication.credentials.username">
-        </div>
-      </div>
-      <div class="form-group" ng-if="currentSubscription.authentication.type === 'basic'">
-        <label class="col-sm-3 control-label">Password</label>
-        <div class="col-sm-9">
-          <input type="password" class="form-control" ng-model="currentSubscription.authentication.credentials.password">
-        </div>
-      </div>
-      <div class="form-group" ng-if="currentSubscription.authentication.type === 'bearer'">
-        <label class="col-sm-3 control-label">Token</label>
-        <div class="col-sm-9">
-          <input type="text" class="form-control" ng-model="currentSubscription.authentication.credentials.token">
-        </div>
-      </div>
-      <div class="form-group" ng-if="currentSubscription.authentication.type === 'api-key'">
-        <label class="col-sm-3 control-label">API Key</label>
-        <div class="col-sm-9">
-          <input type="text" class="form-control" ng-model="currentSubscription.authentication.credentials.apiKey">
+          <input type="number" class="form-control" ng-model="plan.duration" placeholder="e.g., 30 for monthly, 365 for yearly">
+          <p class="help-block">Subscription duration in days</p>
         </div>
       </div>
       <div class="form-group">
-        <label class="col-sm-3 control-label">Status</label>
+        <label class="col-sm-3 control-label">Features</label>
         <div class="col-sm-9">
-          <label class="checkbox-inline">
-            <input type="checkbox" ng-model="currentSubscription.active"> Active
-          </label>
+          <textarea class="form-control" ng-model="plan.featuresText" rows="4" placeholder="One feature per line"></textarea>
+          <p class="help-block">One feature per line</p>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Channel Limit</label>
+        <div class="col-sm-9">
+          <input type="number" class="form-control" ng-model="plan.channelLimit" placeholder="0 for unlimited">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Request Limit</label>
+        <div class="col-sm-9">
+          <input type="number" class="form-control" ng-model="plan.requestLimit" placeholder="0 for unlimited">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Allowed Endpoints</label>
+        <div class="col-sm-9">
+          <input type="text" class="form-control" ng-model="plan.allowedEndpoints" placeholder="* or /api/patients,/api/labs">
+          <p class="help-block">Comma-separated endpoint patterns</p>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Active</label>
+        <div class="col-sm-9">
+          <label class="checkbox-inline"><input type="checkbox" ng-model="plan.active"> Active</label>
         </div>
       </div>
     </form>
   </div>
   <div class="modal-footer">
     <button class="btn btn-default" ng-click="cancel()">Cancel</button>
-    <button class="btn btn-primary" ng-click="saveSubscription()">Save</button>
+    <button class="btn btn-success" ng-click="save()">Save Plan</button>
+  </div>
+</script>
+
+<!-- Add/Edit Subscription Modal (admin) -->
+<script type="text/ng-template" id="subscriptionModal">
+  <div class="modal-header">
+    <h3 class="modal-title">{{ isEdit ? 'Edit Subscription' : 'Add Subscription' }}</h3>
+  </div>
+  <div class="modal-body">
+    <form class="form-horizontal">
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Client ID</label>
+        <div class="col-sm-9">
+          <input type="text" class="form-control" ng-model="currentSubscription.clientID" placeholder="e.g., lab-system-001" ng-disabled="isEdit">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Plan</label>
+        <div class="col-sm-9">
+          <select class="form-control" ng-model="currentSubscription.planId" ng-options="p._id as p.name for p in plans">
+            <option value="">-- Select a plan --</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Status</label>
+        <div class="col-sm-9">
+          <select class="form-control" ng-model="currentSubscription.status">
+            <option value="pending">Pending</option>
+            <option value="active">Active</option>
+            <option value="expired">Expired</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="suspended">Suspended</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Payment Status</label>
+        <div class="col-sm-9">
+          <select class="form-control" ng-model="currentSubscription.paymentStatus">
+            <option value="pending">Pending</option>
+            <option value="paid">Paid</option>
+            <option value="failed">Failed</option>
+            <option value="refunded">Refunded</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Start Date</label>
+        <div class="col-sm-9">
+          <input type="date" class="form-control" ng-model="currentSubscription.startDate">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">End Date</label>
+        <div class="col-sm-9">
+          <input type="date" class="form-control" ng-model="currentSubscription.endDate">
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-default" ng-click="cancel()">Cancel</button>
+    <button class="btn btn-primary" ng-click="save()">Save</button>
+  </div>
+</script>
+
+<!-- Subscribe Modal -->
+<script type="text/ng-template" id="subscribeModal">
+  <div class="modal-header">
+    <h3 class="modal-title"><i class="glyphicon glyphicon-credit-card"></i> Subscribe to {{ selectedPlan.name }}</h3>
+  </div>
+  <div class="modal-body">
+    <p><strong>Plan:</strong> {{ selectedPlan.name }}</p>
+    <p><strong>Price:</strong> ${{ (selectedPlan.price / 100).toFixed(2) }} / {{ selectedPlan.interval }}</p>
+    <hr>
+
+    <!-- Create Client Form -->
+    <div ng-if="showCreateClient">
+      <div class="alert alert-info">
+        <i class="glyphicon glyphicon-info-sign"></i> You need to create a client to subscribe. Your Client ID will be used to identify your integration.
+      </div>
+      <div class="form-group">
+        <label>Client ID *</label>
+        <input type="text" class="form-control" ng-model="newClient.clientID" placeholder="e.g., lab-system-001">
+      </div>
+      <div class="form-group">
+        <label>Client Name *</label>
+        <input type="text" class="form-control" ng-model="newClient.name" placeholder="e.g., Lab System">
+      </div>
+      <button class="btn btn-success btn-block" ng-click="createClient()" ng-disabled="!newClient.clientID || !newClient.name || loading">
+        <span ng-if="loading"><i class="glyphicon glyphicon-refresh glyphicon-spin"></i> Creating...</span>
+        <span ng-if="!loading"><i class="glyphicon glyphicon-plus"></i> Create Client</span>
+      </button>
+    </div>
+
+    <!-- Enter Client ID -->
+    <div ng-if="!showCreateClient">
+      <div class="form-group">
+        <label>Enter your Client ID</label>
+        <input type="text" class="form-control" ng-model="formData.clientID" placeholder="e.g., Mhimbilli">
+        <p class="help-block">Your OpenHIM client ID for this subscription</p>
+      </div>
+      <p class="text-center">
+        <a href="#" ng-click="showCreateClient = true">Don't have a client? Create one</a>
+      </p>
+    </div>
+
+    <div class="alert alert-danger" ng-if="error">{{ error }}</div>
+    <div ng-if="checkoutUrl" class="text-center">
+      <div class="alert alert-success">
+        <i class="glyphicon glyphicon-ok"></i> Checkout session created!
+      </div>
+      <p>Click below to complete your payment:</p>
+      <button class="btn btn-success btn-block" ng-click="openStripe()">
+        <i class="glyphicon glyphicon-new-window"></i> Open Stripe Checkout
+      </button>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-default" ng-click="cancel()">Cancel</button>
+    <button class="btn btn-primary" ng-click="createCheckout()" ng-if="!showCreateClient && !checkoutUrl">
+      <span ng-if="loading"><i class="glyphicon glyphicon-refresh glyphicon-spin"></i> Creating...</span>
+      <span ng-if="!loading"><i class="glyphicon glyphicon-credit-card"></i> Continue to Payment</span>
+    </button>
   </div>
 </script>
