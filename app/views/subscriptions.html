@@ -161,12 +161,12 @@
                         "
                         ng-style="isSubscribed(plan._id) ? {'background': 'white', '-webkit-background-clip': 'text', '-webkit-text-fill-color': 'white', 'background-clip': 'text'} : {}"
                       >
-                        ${{ (plan.price / 100).toFixed(2) }}
+                        {{ plan.price | number }}
                       </span>
                       <span
                         style="font-size: 13px; color: #777; font-weight: 500"
                         ng-style="isSubscribed(plan._id) ? {'color': 'rgba(255,255,255,0.8)'} : {}"
-                        >/ {{ plan.interval }}</span
+                        >TZS / {{ plan.interval }}</span
                       >
                     </div>
                     <p
@@ -365,7 +365,7 @@
                             <div>
                               <strong>Price:</strong>
                               <span ng-if="sub.planId && sub.planId.price">
-                                ${{ (sub.planId.price / 100).toFixed(2) }} / {{
+                                {{ sub.planId.price | number }} TZS / {{
                                 sub.planId.interval }}
                               </span>
                               <span ng-if="!sub.planId || !sub.planId.price"
@@ -470,8 +470,8 @@
                           : 'Unknown' }}
                         </p>
                         <p ng-if="sub.planId">
-                          <strong>Price:</strong> ${{ (sub.planId.price /
-                          100).toFixed(2) }} / {{ sub.planId.interval }}
+                          <strong>Price:</strong> {{ sub.planId.price | number }}
+                          TZS / {{ sub.planId.interval }}
                         </p>
                         <p>
                           <strong>Start Date:</strong> {{ sub.startDate |
@@ -491,9 +491,9 @@
                           <strong>Transaction Reference:</strong>
                           <code>{{ sub.transactionReference || 'N/A' }}</code>
                         </p>
-                        <p ng-if="sub.stripeSubscriptionId">
-                          <strong>Stripe Subscription:</strong>
-                          <code>{{ sub.stripeSubscriptionId }}</code>
+                        <p ng-if="sub.snippeReference">
+                          <strong>Snippe Reference:</strong>
+                          <code>{{ sub.snippeReference }}</code>
                         </p>
                         <div style="margin-top: 15px">
                           <button
@@ -623,19 +623,17 @@
         </div>
       </div>
       <div class="form-group">
-        <label class="col-sm-3 control-label">Price (cents)</label>
+        <label class="col-sm-3 control-label">Price (TZS)</label>
         <div class="col-sm-9">
-          <input type="number" class="form-control" ng-model="plan.price" placeholder="e.g., 4900 for $49.00" required>
-          <p class="help-block">Amount in smallest currency unit (cents). $49.00 = 4900</p>
+          <input type="number" class="form-control" ng-model="plan.price" placeholder="e.g., 49000" min="500" required>
+          <p class="help-block">Whole amount in Tanzanian Shillings. Minimum 500 TZS.</p>
         </div>
       </div>
       <div class="form-group">
         <label class="col-sm-3 control-label">Currency</label>
         <div class="col-sm-9">
           <select class="form-control" ng-model="plan.currency">
-            <option value="usd">USD</option>
-            <option value="eur">EUR</option>
-            <option value="gbp">GBP</option>
+            <option value="TZS">TZS</option>
           </select>
         </div>
       </div>
@@ -762,11 +760,11 @@
 <!-- Subscribe Modal -->
 <script type="text/ng-template" id="subscribeModal">
   <div class="modal-header">
-    <h3 class="modal-title"><i class="glyphicon glyphicon-credit-card"></i> Subscribe to {{ selectedPlan.name }}</h3>
+    <h3 class="modal-title"><i class="glyphicon glyphicon-phone"></i> Subscribe to {{ selectedPlan.name }}</h3>
   </div>
   <div class="modal-body">
     <p><strong>Plan:</strong> {{ selectedPlan.name }}</p>
-    <p><strong>Price:</strong> ${{ (selectedPlan.price / 100).toFixed(2) }} / {{ selectedPlan.interval }}</p>
+    <p><strong>Price:</strong> {{ selectedPlan.price | number }} TZS / {{ selectedPlan.interval }}</p>
     <hr>
 
     <!-- Create Client Form -->
@@ -788,12 +786,17 @@
       </button>
     </div>
 
-    <!-- Enter Client ID -->
-    <div ng-if="!showCreateClient">
+    <!-- Enter Client ID + Mobile Money number -->
+    <div ng-if="!showCreateClient && !paymentInitiated">
       <div class="form-group">
         <label>Enter your Client ID</label>
         <input type="text" class="form-control" ng-model="formData.clientID" placeholder="e.g., Mhimbilli">
         <p class="help-block">Your OpenHIM client ID for this subscription</p>
+      </div>
+      <div class="form-group">
+        <label>Mobile Money Number</label>
+        <input type="tel" class="form-control" ng-model="formData.phoneNumber" placeholder="e.g., 255781000000">
+        <p class="help-block">Airtel Money, M-Pesa, Mixx by Yas or HaloPesa number (255XXXXXXXXX). You will receive a USSD prompt to authorise.</p>
       </div>
       <p class="text-center">
         <a href="#" ng-click="showCreateClient = true">Don't have a client? Create one</a>
@@ -801,21 +804,22 @@
     </div>
 
     <div class="alert alert-danger" ng-if="error">{{ error }}</div>
-    <div ng-if="checkoutUrl" class="text-center">
+
+    <div ng-if="paymentInitiated" class="text-center">
       <div class="alert alert-success">
-        <i class="glyphicon glyphicon-ok"></i> Checkout session created!
+        <i class="glyphicon glyphicon-phone"></i> {{ paymentMessage }}
       </div>
-      <p>Click below to complete your payment:</p>
-      <button class="btn btn-success btn-block" ng-click="openStripe()">
-        <i class="glyphicon glyphicon-new-window"></i> Open Stripe Checkout
-      </button>
+      <p class="text-muted">Once you authorise the payment on your phone, your subscription will activate automatically. You can close this dialog.</p>
     </div>
   </div>
   <div class="modal-footer">
-    <button class="btn btn-default" ng-click="cancel()">Cancel</button>
-    <button class="btn btn-primary" ng-click="createCheckout()" ng-if="!showCreateClient && !checkoutUrl">
-      <span ng-if="loading"><i class="glyphicon glyphicon-refresh glyphicon-spin"></i> Creating...</span>
-      <span ng-if="!loading"><i class="glyphicon glyphicon-credit-card"></i> Continue to Payment</span>
+    <button class="btn btn-default" ng-click="cancel()" ng-if="!paymentInitiated">Cancel</button>
+    <button class="btn btn-primary" ng-click="startPayment()" ng-if="!showCreateClient && !paymentInitiated">
+      <span ng-if="loading"><i class="glyphicon glyphicon-refresh glyphicon-spin"></i> Sending prompt...</span>
+      <span ng-if="!loading"><i class="glyphicon glyphicon-phone"></i> Pay with Mobile Money</span>
+    </button>
+    <button class="btn btn-success" ng-click="done()" ng-if="paymentInitiated">
+      <i class="glyphicon glyphicon-ok"></i> Done
     </button>
   </div>
 </script>

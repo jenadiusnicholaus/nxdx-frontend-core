@@ -3,7 +3,6 @@ export function SubscriptionsCtrl(
   $scope,
   $uibModal,
   $http,
-  $window,
   config,
   Alerting,
   Api,
@@ -317,8 +316,10 @@ export function SubscriptionsCtrl(
         $scope.selectedPlan = plan;
         $scope.formData = {
           clientID: "",
+          phoneNumber: "",
         };
-        $scope.checkoutUrl = null;
+        $scope.paymentInitiated = false;
+        $scope.paymentMessage = null;
         $scope.loading = false;
         $scope.error = null;
         $scope.clients = [];
@@ -350,6 +351,9 @@ export function SubscriptionsCtrl(
           client.name = $scope.newClient.name;
           client.clientDomain = $scope.newClient.clientID + "@openhim.org";
           client.ownerEmail = $rootScope.sessionUser;
+          // Clients need at least one role to be usable on channels; default
+          // subscription clients to a "subscriber" role (editable later).
+          client.roles = ["subscriber"];
 
           client.$save(
             function (savedClient) {
@@ -365,41 +369,45 @@ export function SubscriptionsCtrl(
           );
         };
 
-        $scope.createCheckout = function () {
-          console.log("createCheckout called");
-          console.log("clientID:", $scope.formData.clientID);
-          console.log("selectedPlan:", $scope.selectedPlan);
-          if (!$scope.formData.clientID) {
-            console.log("No clientID provided");
+        $scope.startPayment = function () {
+          if (!$scope.formData.clientID || !$scope.formData.phoneNumber) {
+            $scope.error = "Client ID and mobile money phone number are required";
             return;
           }
           $scope.loading = true;
           $scope.error = null;
           $http
             .post(
-              `${CORE_API_URL}/subscriptions/checkout`,
+              `${CORE_API_URL}/subscriptions/pay`,
               {
                 clientID: $scope.formData.clientID,
                 planId: $scope.selectedPlan._id,
+                phoneNumber: $scope.formData.phoneNumber,
               },
               { withCredentials: true },
             )
             .then(
               function (response) {
-                console.log("Checkout response:", response);
-                $scope.checkoutUrl = response.data.checkoutUrl;
                 $scope.loading = false;
+                $scope.paymentInitiated = true;
+                $scope.paymentMessage =
+                  (response.data && response.data.message) ||
+                  "A payment prompt has been sent to your phone. Enter your mobile money PIN to authorise.";
+                $scope.$emit("subscriptionsChanged");
               },
               function (err) {
-                console.log("Checkout error:", err);
                 $scope.loading = false;
-                $scope.error = err.data || err.statusText;
+                $scope.error =
+                  (err.data && (err.data.message || err.data)) ||
+                  err.statusText ||
+                  "Payment could not be initiated";
               },
             );
         };
 
-        $scope.openStripe = function () {
-          $window.open($scope.checkoutUrl, "_blank");
+        $scope.done = function () {
+          $scope.$emit("subscriptionsChanged");
+          $uibModalInstance.close();
         };
 
         $scope.cancel = function () {
