@@ -1,0 +1,34 @@
+{
+  "version": "1.18.2",
+  "minimumCoreVersion": "5.2.0",
+  "protocol": "https",
+  "host": "nxapi.nexacon.africa",
+  "hostPath": "",
+  "port": "443",
+  "title": "NexaConn Data Exchange",
+  "footerTitle": "NexaConn Data Exchange Administration Console",
+  "footerPoweredBy": "<a href='#' target='_blank'>Powered by NexaConn NDX</a>",
+  "loginBanner": "",
+  "mediatorLastHeartbeatWarningSeconds": 60,
+  "mediatorLastHeartbeatDangerSeconds": 120,
+  "showLoginForm": true,
+  "ssoEnabled": false,
+  "keyCloakUrl": "http://localhost:9088",
+  "keyCloakRealm": "platform-realm",
+  "keyCloakClientId": "openhim-oauth",
+  "theme": {
+    "primaryColor": "#22c55e",
+    "primaryHoverColor": "#16a34a",
+    "primaryLightColor": "rgba(34, 197, 94, 0.12)",
+    "secondaryColor": "#10b981",
+    "headerBgColor": "#0a110d",
+    "footerBgColor": "#0a110d",
+    "errorColor": "#ef4444",
+    "warningColor": "#f59e0b",
+    "infoColor": "#06b6d4"
+  },
+  "logo": {
+    "value": "",
+    "disableTextLogo": false
+  }
+}

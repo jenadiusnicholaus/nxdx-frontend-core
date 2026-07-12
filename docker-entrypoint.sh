@@ -11,6 +11,11 @@ export KC_FRONTEND_URL=${KC_FRONTEND_URL:-"http://localhost:9088"}
 export KC_REALM_NAME=${KC_REALM_NAME:-"platform-realm"}
 export KC_OPENHIM_CLIENT_ID=${KC_OPENHIM_CLIENT_ID:-"openhim-oauth"}
 
-cat config/default-env.json | envsubst | tee config/default.json
+# Use production.json if it exists, otherwise use default-env.json with envsubst
+if [ -f config/production.json ]; then
+  cp config/production.json config/default.json
+else
+  cat config/default-env.json | envsubst | tee config/default.json
+fi
 
 nginx -g "daemon off;"
