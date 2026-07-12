@@ -11,13 +11,13 @@ services:
     volumes:
       - "mongo-data:/data/db"
     ports:
-      - "27017:27017"
+      - "127.0.0.1:27017:27017"
     restart: unless-stopped
 
   openhim-core:
     container_name: openhim-core
     build:
-      context: ../../openhim-core-js
+      context: ../../nxdx-backend-core
       dockerfile: Dockerfile
     image: nexacon-openhim-core:latest
     restart: unless-stopped
@@ -30,9 +30,9 @@ services:
       STRIPE_SUCCESS_URL: "${STRIPE_SUCCESS_URL:-https://localhost:9090/#!/subscriptions?payment=success}"
       STRIPE_CANCEL_URL: "${STRIPE_CANCEL_URL:-https://localhost:9090/#!/subscriptions?payment=cancelled}"
     ports:
-      - "8080:8080"
-      - "6000:5000"
-      - "6001:5001"
+      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:6000:5000"
+      - "127.0.0.1:6001:5001"
     networks:
       - openhim
     healthcheck:
@@ -48,7 +48,7 @@ services:
     networks:
       - openhim
     ports:
-      - "9090:80"
+      - "127.0.0.1:9090:80"
     volumes:
       - "../app/config/default.json:/usr/share/nginx/html/config/default.json"
     healthcheck:
