@@ -143,6 +143,38 @@ app.run(function ($rootScope, $location, $anchorScroll, Alerting, config) {
   $rootScope.footerCoreVersion = null;
   $rootScope.loginBanner = config.loginBanner;
 
+  // ── Theme Configuration ────────────────────────────────────
+  // Apply theme colors from config as CSS custom property overrides.
+  // This way no CSS rebuild is needed — operators set values in default.json.
+  (function applyNdxTheme(theme) {
+    if (!theme || typeof theme !== 'object') return;
+    const root = document.documentElement;
+    const map = {
+      primaryColor:      '--ndx-primary',
+      primaryHoverColor: '--ndx-primary-hover',
+      primaryLightColor: '--ndx-primary-light',
+      secondaryColor:    '--ndx-secondary',
+      headerBgColor:     '--ndx-bg-header',
+      footerBgColor:     '--ndx-bg-footer',
+      errorColor:        '--ndx-danger',
+      warningColor:      '--ndx-warning',
+      infoColor:         '--ndx-info',
+    };
+    Object.keys(map).forEach(function (key) {
+      if (theme[key]) {
+        root.style.setProperty(map[key], theme[key]);
+      }
+    });
+  })(config.theme);
+
+  // ── Logo Configuration ─────────────────────────────────────
+  // Expose logo settings on $rootScope for template.html to consume.
+  // Supported formats: data:image/png;base64,... | data:image/svg+xml;base64,... | URL
+  $rootScope.ndxLogo = {
+    value: (config.logo && config.logo.value) ? config.logo.value : null,
+    disableTextLogo: (config.logo && config.logo.disableTextLogo === true),
+  };
+
   // Dark mode functionality
   $rootScope.darkMode = false;
 

@@ -168,6 +168,39 @@ app.run(
     $rootScope.footerCoreVersion = null;
     $rootScope.loginBanner = config.loginBanner;
 
+    // ── Theme Configuration ─────────────────────────────────────
+    // Maps config.theme keys → CSS custom properties on :root.
+    // nexacon-theme.css uses these vars throughout, so every
+    // component re-colors with zero CSS rebuild needed.
+    (function applyNdxTheme(theme) {
+      if (!theme || typeof theme !== 'object') return;
+      var root = document.documentElement;
+      var map = {
+        primaryColor:      '--ndx-primary',
+        primaryHoverColor: '--ndx-primary-hover',
+        primaryLightColor: '--ndx-primary-light',
+        secondaryColor:    '--ndx-secondary',
+        headerBgColor:     '--ndx-bg-header',
+        footerBgColor:     '--ndx-bg-footer',
+        errorColor:        '--ndx-danger',
+        warningColor:      '--ndx-warning',
+        infoColor:         '--ndx-info',
+      };
+      Object.keys(map).forEach(function (key) {
+        if (theme[key]) {
+          root.style.setProperty(map[key], theme[key]);
+        }
+      });
+    })(config.theme);
+
+    // ── Logo Configuration ──────────────────────────────────────
+    // Exposes logo on $rootScope for index.html / template.html.
+    // Supported: data:image/png;base64,… | data:image/svg+xml;base64,… | URL
+    $rootScope.ndxLogo = {
+      value: (config.logo && config.logo.value) ? config.logo.value : null,
+      disableTextLogo: (config.logo && config.logo.disableTextLogo === true),
+    };
+
     // Dark mode functionality
     $rootScope.darkMode = false;
 
@@ -198,8 +231,6 @@ app.run(
     };
 
     /* ------------------------------CHECK USER SESSION--------------------------------- */
-    // register listener to watch route changes
-
     // Toggle body class for home page (hides app chrome)
     $rootScope.$on('$routeChangeSuccess', function (event, current) {
       if (current && current.$$route && current.$$route.originalPath === '/home') {
@@ -208,7 +239,6 @@ app.run(
         document.body.classList.remove('ndx-home-active');
       }
     });
-
     /* ------------------------------CHECK USER SESSION--------------------------------- */
   },
 );

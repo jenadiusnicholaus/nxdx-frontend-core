@@ -15,5 +15,20 @@
   "ssoEnabled": false,
   "keyCloakUrl": "http://localhost:9088",
   "keyCloakRealm": "platform-realm",
-  "keyCloakClientId": "openhim-oauth"
+  "keyCloakClientId": "openhim-oauth",
+  "theme": {
+    "primaryColor": "#22c55e",
+    "primaryHoverColor": "#16a34a",
+    "primaryLightColor": "rgba(34, 197, 94, 0.12)",
+    "secondaryColor": "#10b981",
+    "headerBgColor": "#0a110d",
+    "footerBgColor": "#0a110d",
+    "errorColor": "#ef4444",
+    "warningColor": "#f59e0b",
+    "infoColor": "#06b6d4"
+  },
+  "logo": {
+    "value": "",
+    "disableTextLogo": false
+  }
 }

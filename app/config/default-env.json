@@ -15,5 +15,20 @@
   "ssoEnabled": ${KC_OPENHIM_SSO_ENABLED},
   "keyCloakUrl": "${KC_FRONTEND_URL}",
   "keyCloakRealm": "${KC_REALM_NAME}",
-  "keyCloakClientId": "${KC_OPENHIM_CLIENT_ID}"
+  "keyCloakClientId": "${KC_OPENHIM_CLIENT_ID}",
+  "theme": {
+    "primaryColor": "${NDX_THEME_PRIMARY_COLOR:-#22c55e}",
+    "primaryHoverColor": "${NDX_THEME_PRIMARY_HOVER_COLOR:-#16a34a}",
+    "primaryLightColor": "${NDX_THEME_PRIMARY_LIGHT_COLOR:-rgba(34, 197, 94, 0.12)}",
+    "secondaryColor": "${NDX_THEME_SECONDARY_COLOR:-#10b981}",
+    "headerBgColor": "${NDX_THEME_HEADER_BG_COLOR:-#0a110d}",
+    "footerBgColor": "${NDX_THEME_FOOTER_BG_COLOR:-#0a110d}",
+    "errorColor": "${NDX_THEME_ERROR_COLOR:-#ef4444}",
+    "warningColor": "${NDX_THEME_WARNING_COLOR:-#f59e0b}",
+    "infoColor": "${NDX_THEME_INFO_COLOR:-#06b6d4}"
+  },
+  "logo": {
+    "value": "${NDX_LOGO_VALUE:-}",
+    "disableTextLogo": ${NDX_LOGO_DISABLE_TEXT:-false}
+  }
 }

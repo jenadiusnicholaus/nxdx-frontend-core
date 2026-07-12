@@ -38,6 +38,7 @@
     <!-- endbuild -->
     <!-- build:css({.tmp,app}) styles/main.css -->
     <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/nexacon-theme.css" />
     <link
       rel="stylesheet"
       href="bower_components/highlightjs/styles/github.css"
@@ -65,8 +66,15 @@
                 <div class="logo">
                   <h1>
                     <a href="#/transactions" style="display:inline-flex;align-items:center;gap:10px;">
-                      <!-- NDX Hex Icon (inline SVG, no external image needed) -->
-                      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+                      <!-- Custom logo from config (base64 or URL) -->
+                      <img
+                        ng-if="ndxLogo.value"
+                        ng-src="{{ndxLogo.value}}"
+                        alt="{{appTitle}} Logo"
+                        style="height:32px;width:auto;object-fit:contain;flex-shrink:0;"
+                      />
+                      <!-- Default NDX Hex Icon (shown when no custom logo) -->
+                      <svg ng-if="!ndxLogo.value" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
                         <polygon points="16,2 28,9 28,23 16,30 4,23 4,9" fill="none" stroke="#22c55e" stroke-width="2"/>
                         <circle cx="16" cy="16" r="3" fill="#22c55e"/>
                         <line x1="16" y1="2" x2="16" y2="13" stroke="#22c55e" stroke-width="1.5" opacity="0.6"/>
@@ -76,8 +84,9 @@
                         <line x1="4" y1="9" x2="13" y2="13.5" stroke="#22c55e" stroke-width="1.5" opacity="0.6"/>
                         <line x1="19" y1="18.5" x2="28" y2="23" stroke="#22c55e" stroke-width="1.5" opacity="0.6"/>
                       </svg>
-                      <span style="font-family:'Inter',sans-serif;font-weight:700;font-size:17px;letter-spacing:-0.3px;color:#fff;line-height:1;">NexaConn
-                        <span style="color:#22c55e;">NDX</span>
+                      <!-- Brand text — hidden when disableTextLogo is true -->
+                      <span ng-if="!ndxLogo.disableTextLogo" class="nexaconn-logo-text">NexaConn
+                        <span class="nexaconn-logo-accent">NDX</span>
                       </span>
                     </a>
                   </h1>
