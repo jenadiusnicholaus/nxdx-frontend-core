@@ -5,7 +5,12 @@ RUN apk add git
 
 WORKDIR /app
 
-COPY . .
+COPY package*.json ./
+COPY app ./app
+COPY *.js ./
+
+# Backup original default.json (clean version for webpack)
+RUN cp app/config/default.json app/config/default.json.original
 
 RUN npm install
 
