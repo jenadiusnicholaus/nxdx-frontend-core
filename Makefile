@@ -17,7 +17,7 @@ help:
 # Build all images
 build:
 	@echo "Building backend..."
-	docker build -t nexacon-openhim-core:latest .
+	cd ../nxdx-backend-core && docker build -t nexacon-openhim-core:latest .
 	@echo "Building frontend..."
 	docker build -t nexacon-openhim-console:latest .
 
@@ -41,7 +41,7 @@ logs:
 # Backend only
 backend:
 	@echo "Building and starting backend..."
-	docker build -t nexacon-openhim-core:latest .
+	cd ../nxdx-backend-core && docker build -t nexacon-openhim-core:latest .
 	docker compose --env-file infrastructure/.env -f infrastructure/docker-compose.yml up -d mongo-db openhim-core
 
 # Frontend only
@@ -53,7 +53,7 @@ frontend:
 # Deploy backend (one command)
 deploy-backend:
 	@echo "Deploying backend..."
-	docker build -t nexacon-openhim-core:latest .
+	cd ../nxdx-backend-core && docker build -t nexacon-openhim-core:latest .
 	docker compose --env-file infrastructure/.env -f infrastructure/docker-compose.yml up -d mongo-db openhim-core
 
 # Deploy frontend (one command)
@@ -65,6 +65,6 @@ deploy-frontend:
 # Deploy all (one command)
 deploy:
 	@echo "Deploying all..."
-	docker build -t nexacon-openhim-core:latest .
+	cd ../nxdx-backend-core && docker build -t nexacon-openhim-core:latest .
 	docker build -t nexacon-openhim-console:latest .
 	docker compose --env-file infrastructure/.env -f infrastructure/docker-compose.yml up -d
