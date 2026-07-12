@@ -29,6 +29,9 @@ WORKDIR /usr/share/nginx/html
 
 COPY --from=build /app/dist  ./
 
+# Remove default.json from build (will be created by entrypoint)
+RUN rm -f ./config/default.json
+
 # Copy production config for runtime
 COPY --from=build /app/app/config/production.json ./config/production.json
 COPY --from=build /app/app/config/default-env.json ./config/default-env.json
