@@ -29,6 +29,10 @@ WORKDIR /usr/share/nginx/html
 
 COPY --from=build /app/dist  ./
 
+# Copy production config for runtime
+COPY --from=build /app/app/config/production.json ./config/production.json
+COPY --from=build /app/app/config/default-env.json ./config/default-env.json
+
 COPY ./docker-entrypoint.sh /usr/local/bin/
 
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
