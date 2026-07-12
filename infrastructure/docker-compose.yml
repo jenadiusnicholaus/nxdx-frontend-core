@@ -35,7 +35,7 @@ services:
       SNIPPE_BASE_URL: "${SNIPPE_BASE_URL:-https://api.snippe.sh}"
       SNIPPE_WEBHOOK_URL: "${SNIPPE_WEBHOOK_URL:-}"
     ports:
-      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:8081:8080"
       - "127.0.0.1:6000:5000"
       - "127.0.0.1:6001:5001"
     networks:
