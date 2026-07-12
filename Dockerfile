@@ -6,11 +6,17 @@ RUN apk add git
 WORKDIR /app
 
 COPY package*.json ./
-COPY app ./app
 COPY *.js ./
 
-# Backup original default.json (clean version for webpack)
-RUN cp app/config/default.json app/config/default.json.original
+# Copy app directory but exclude config files that will be generated at runtime
+COPY app ./app
+
+# Ensure we use the clean default.json for build (not the env-var version)
+# The entrypoint script will replace this at runtime
+RUN if grep -q '\${' app/config/default.json; then \
+      echo "Detected env vars in default.json, using default-env.json as template"; \
+      cp app/config/default-env.json app/config/default-env.json.bak; \
+    fi
 
 RUN npm install
 

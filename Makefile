@@ -65,6 +65,8 @@ deploy-frontend:
 # Deploy all (one command)
 deploy:
 	@echo "Deploying all..."
+	@echo "Restoring clean config files from git..."
+	git checkout app/config/default.json || true
 	cd ../nxdx-backend-core && docker build -t nexacon-openhim-core:latest .
 	docker build -t nexacon-openhim-console:latest .
 	docker compose --env-file infrastructure/.env -f infrastructure/docker-compose.yml up -d
