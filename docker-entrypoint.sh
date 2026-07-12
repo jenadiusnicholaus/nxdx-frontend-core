@@ -13,9 +13,13 @@ export KC_OPENHIM_CLIENT_ID=${KC_OPENHIM_CLIENT_ID:-"openhim-oauth"}
 
 # Use production.json if it exists, otherwise use default-env.json with envsubst
 if [ -f config/production.json ]; then
-  cp config/production.json config/default.json
+  echo "Using production.json for config"
+  cp -f config/production.json config/default.json
 else
+  echo "Using default-env.json with envsubst"
   cat config/default-env.json | envsubst | tee config/default.json
 fi
+
+echo "Config loaded: $(cat config/default.json | grep -o '"host":[^,]*')"
 
 nginx -g "daemon off;"
